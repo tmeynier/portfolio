@@ -1,0 +1,1249 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Hepha combines LLM planning, enterprise context, and π0.6 robot policies for autonomous multi-robot execution.">
+  <link rel="canonical" href="https://tristanmeynier.com/hepha/">
+  <title>Hepha</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='white'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='black' stroke-width='10'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --ink: #101010;
+      --muted: #66635f;
+      --line: #dedbd5;
+      --soft: #f5f4f1;
+      --paper: #fbfbfa;
+      --accent: #1488c4;
+      --accent-rgb: 20, 136, 196;
+      --blue: #346bdc;
+      --green: #37946b;
+      --violet: #7357c9;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Arial, Helvetica, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      height: 64px;
+      border-bottom: 1px solid #ebe9e5;
+      background: rgba(251, 251, 250, .92);
+      backdrop-filter: blur(14px);
+    }
+
+    .nav {
+      width: min(1024px, calc(100% - 40px));
+      height: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .brand {
+      margin-right: 8px;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -.06em;
+    }
+
+    .brand i { color: var(--accent); font-style: normal; }
+    .nav a:not(.brand) { color: #5b5854; font-size: 14px; }
+    .nav a:not(.brand):hover { color: var(--ink); }
+
+    main { overflow: hidden; }
+
+    .hero,
+    .article-section,
+    .footer {
+      width: min(1024px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .hero {
+      padding: 74px 0 92px;
+      text-align: center;
+    }
+
+    h1 {
+      max-width: 850px;
+      margin: 0 auto;
+      font-size: clamp(52px, 6.6vw, 84px);
+      line-height: .98;
+      letter-spacing: -.062em;
+      font-weight: 700;
+    }
+
+    h1 .dot { color: var(--accent); }
+
+    .intro {
+      max-width: 750px;
+      margin: 26px auto 48px;
+      color: var(--muted);
+      font-size: clamp(18px, 2vw, 23px);
+      line-height: 1.5;
+    }
+
+    .system-figure { margin: 0; text-align: left; }
+
+    .system-stage {
+      position: relative;
+      width: 100%;
+      height: 670px;
+      overflow: hidden;
+      border: 1px solid #ddd9d2;
+      border-radius: 14px;
+      background: #f1f0ed;
+    }
+
+    .connections {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .connections .wire {
+      fill: none;
+      stroke: #aaa69f;
+      stroke-width: 1.5;
+      stroke-dasharray: 4 5;
+    }
+
+    .connections .zone {
+      fill: rgba(255,255,255,.54);
+      stroke: #bdb9b1;
+      stroke-width: 1.4;
+    }
+
+    .connections .zone-active {
+      fill: rgba(var(--accent-rgb), .07);
+      stroke: var(--accent);
+    }
+
+    .connections .zone-title {
+      fill: #595652;
+      font: 700 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing: .08em;
+    }
+
+    .connections .environment-box {
+      fill: rgba(255,255,255,.18);
+      stroke: #99958e;
+      stroke-width: 1.5;
+    }
+
+    .connections .environment-title {
+      fill: #74706a;
+      font: 700 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing: .1em;
+    }
+
+    .search-bar {
+      position: absolute;
+      z-index: 3;
+      top: 34px;
+      left: 50%;
+      width: min(700px, calc(100% - 48px));
+      height: 62px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 0 20px;
+      transform: translateX(-50%);
+      border: 1px solid #cbc7c0;
+      border-radius: 32px;
+      background: white;
+      box-shadow: 0 10px 30px rgba(24,20,15,.08);
+    }
+
+    .ai-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex: 0 0 auto;
+      padding-right: 14px;
+      border-right: 1px solid #dedbd5;
+      color: var(--accent);
+      font: 700 11px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+
+    .ai-label::before {
+      content: "✦";
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .typed-wrap {
+      min-width: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      font-size: 16px;
+      color: #242321;
+      font-weight: 400;
+    }
+
+    .typed {
+      display: inline-block;
+      width: 0;
+      overflow: hidden;
+      vertical-align: bottom;
+      border-right: 2px solid #151515;
+      animation: typing 24s steps(49, end) infinite, cursor 700ms step-end infinite;
+    }
+
+    .typed-blue {
+      color: #087dcc;
+      font-weight: 600;
+    }
+
+    .flow-caption {
+      position: absolute;
+      z-index: 4;
+      top: 112px;
+      left: 50%;
+      width: max-content;
+      max-width: calc(100% - 32px);
+      margin: 0;
+      padding: 3px 10px;
+      transform: translateX(-50%) translateY(4px);
+      border-radius: 999px;
+      color: #66635f;
+      background: rgba(241,240,237,.94);
+      font-size: 12px;
+      line-height: 1.35;
+      text-align: center;
+      opacity: 0;
+    }
+
+    .flow-caption strong {
+      margin-right: 5px;
+      color: var(--accent);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .flow-caption-one { animation: caption-one 24s infinite; }
+    .flow-caption-two { top: 286px; animation: caption-two 24s infinite; }
+    .flow-caption-three { top: 454px; animation: caption-three 24s infinite; }
+
+    .node {
+      position: absolute;
+      z-index: 2;
+      padding: 13px 16px;
+      border: 1px solid #c8c4bd;
+      border-radius: 9px;
+      background: rgba(255,255,255,.95);
+      box-shadow: 0 5px 18px rgba(24,20,15,.05);
+      text-align: center;
+    }
+
+    .node b,
+    .robot-pool b {
+      display: block;
+      font-size: 15px;
+    }
+
+    .coordinator {
+      top: 166px;
+      left: 50%;
+      width: 184px;
+      padding: 17px;
+      transform: translateX(-50%);
+      border-color: #232220;
+      background: #171716;
+      color: white;
+    }
+
+    .rag { top: 233px; left: 10%; width: 160px; }
+    .erp { top: 233px; right: 10%; width: 160px; }
+
+    .robot-pool {
+      position: absolute;
+      z-index: 3;
+      top: 344px;
+      left: 50%;
+      width: 260px;
+      padding: 14px 16px 12px;
+      transform: translateX(-50%);
+      border: 1px solid #c8c4bd;
+      border-radius: 10px;
+      background: rgba(255,255,255,.96);
+      text-align: center;
+    }
+
+    .robots {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin-top: 10px;
+    }
+
+    .robots span {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #b8b4ad;
+      border-radius: 50%;
+      color: #6f6b65;
+      background: #f6f5f2;
+      font: 700 10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .robots .active {
+      animation: activate-robot 24s infinite;
+    }
+
+    .packet { opacity: 0; }
+    .query-packet { fill: var(--accent); }
+    .rag-packet { fill: var(--violet); }
+    .erp-packet { fill: var(--blue); }
+    .command-packet { fill: var(--green); }
+    .success-packet { fill: var(--accent); }
+
+    .moving-robot {
+      filter: drop-shadow(0 4px 5px rgba(16,16,16,.22));
+    }
+
+    .moving-robot circle { fill: var(--accent); }
+    .moving-robot text {
+      fill: white;
+      font: 700 9px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    @keyframes typing {
+      0%, 4% { width: 0; }
+      26%, 94% { width: 36ch; }
+      100% { width: 0; }
+    }
+
+    @keyframes caption-one {
+      0%, 24% { opacity: 0; transform: translateX(-50%) translateY(4px); }
+      27%, 43% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      47%, 100% { opacity: 0; transform: translateX(-50%) translateY(-3px); }
+    }
+
+    @keyframes caption-two {
+      0%, 46% { opacity: 0; transform: translateX(-50%) translateY(4px); }
+      49%, 74% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      78%, 100% { opacity: 0; transform: translateX(-50%) translateY(-3px); }
+    }
+
+    @keyframes caption-three {
+      0%, 77% { opacity: 0; transform: translateX(-50%) translateY(4px); }
+      81%, 96% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-3px); }
+    }
+
+    @keyframes cursor { 50% { border-color: transparent; } }
+
+    @keyframes activate-robot {
+      0%, 54% { color: #6f6b65; background: #f6f5f2; border-color: #b8b4ad; box-shadow: none; }
+      58%, 96% { color: white; background: var(--accent); border-color: var(--accent); box-shadow: 0 0 0 7px rgba(var(--accent-rgb), .12); }
+      100% { color: #6f6b65; background: #f6f5f2; border-color: #b8b4ad; box-shadow: none; }
+    }
+
+    .article-section {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 42px;
+      padding: 94px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section-number {
+      padding-top: 6px;
+      color: #8b8781;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    .section-body h2 {
+      margin: 0 0 34px;
+      font-size: clamp(35px, 4.3vw, 54px);
+      line-height: 1;
+      letter-spacing: -.045em;
+    }
+
+    .text-columns {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 44px;
+    }
+
+    .text-columns p,
+    .section-body > p,
+    .step p {
+      margin: 0;
+      color: #45423f;
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    .text-columns p + p,
+    .section-body > p + p { margin-top: 22px; }
+
+    .subgrid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      margin-top: 48px;
+      border-top: 1px solid var(--line);
+    }
+
+    .subgrid article {
+      padding: 24px 26px 0 0;
+    }
+
+    .subgrid article + article {
+      padding-left: 26px;
+      border-left: 1px solid var(--line);
+    }
+
+    .subgrid h3,
+    .step h3 {
+      margin: 0 0 12px;
+      font-size: 19px;
+      letter-spacing: -.02em;
+    }
+
+    .subgrid p {
+      margin: 0;
+      color: #65615c;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .protocol {
+      margin-top: 12px;
+      border-top: 1px solid var(--ink);
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 52px 190px 1fr;
+      gap: 18px;
+      align-items: baseline;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .step span {
+      color: var(--accent);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .prototype-overview {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(360px, .95fr);
+      gap: 54px;
+      align-items: center;
+    }
+
+    .prototype-copy p {
+      margin: 0;
+      color: #45423f;
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    .prototype-copy p + p { margin-top: 22px; }
+
+    .training-pyramid {
+      position: relative;
+      min-height: 314px;
+      padding: 40px 0 0;
+      transform: translateY(-22px);
+    }
+
+    .rac-loop {
+      position: absolute;
+      top: -16px;
+      left: 50%;
+      width: 220px;
+      height: 94px;
+      transform: translateX(-50%);
+    }
+
+    .rac-loop svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .rac-loop path {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+    }
+
+    .rac-loop-label {
+      position: absolute;
+      inset: 31px 34px auto;
+      color: #075d7d;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.25;
+      text-align: center;
+    }
+
+    .pyramid-stack {
+      display: block;
+      width: 108%;
+      height: 258px;
+      margin-left: -4%;
+      overflow: visible;
+    }
+
+    .pyramid-stack polygon,
+    .pyramid-stack .pyramid-layer-shape {
+      stroke: var(--paper);
+      stroke-width: 5;
+      stroke-linejoin: round;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .pyramid-stack text {
+      fill: #171717;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .pyramid-bc { fill: #686b6d; }
+    .pyramid-sim { fill: #8d9092; }
+    .pyramid-ego { fill: #b2b4b5; }
+    .pyramid-web { fill: #d8d9d9; }
+    .pyramid-stack .pyramid-top-label { fill: white; font-size: 9px; }
+
+    .pyramid-stack .pyramid-outline {
+      fill: none;
+      stroke: var(--paper);
+      stroke-width: 10;
+      stroke-linejoin: round;
+      pointer-events: none;
+    }
+
+    .draft-note {
+      margin-top: 36px;
+      padding: 18px 20px;
+      border: 1px solid #a8dff0;
+      border-radius: 8px;
+      color: #075d7d;
+      background: #effaff;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .video-intro {
+      max-width: 780px;
+    }
+
+    .video-frame {
+      position: relative;
+      max-width: 680px;
+      margin: 38px auto 0;
+      overflow: hidden;
+      border: 1px solid #d5d1ca;
+      border-radius: 14px;
+      background: white;
+      box-shadow: 0 18px 50px rgba(20,18,15,.10);
+    }
+
+    .video-frame video {
+      width: 100%;
+      display: block;
+      aspect-ratio: 16 / 9;
+      background: white;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .video-end-card {
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #050505;
+      background: var(--paper);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 180ms linear;
+    }
+
+    .end-logo {
+      width: 104px;
+      height: 104px;
+      display: grid;
+      place-items: center;
+      background: transparent;
+    }
+
+    .end-logo svg { width: 92px; height: 92px; }
+    .end-logo circle { stroke-width: 6; }
+
+    .end-brand {
+      margin-top: 14px;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -.055em;
+    }
+
+    .end-title {
+      margin-top: 5px;
+      color: #4d5357;
+      font-size: 13px;
+      letter-spacing: .01em;
+    }
+
+    .video-caption-track {
+      max-width: 680px;
+      min-height: 48px;
+      margin: 14px auto 0;
+      padding: 0 2px;
+    }
+
+    .video-typed-caption {
+      margin: 0;
+      color: #050505;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.55;
+      letter-spacing: .015em;
+      transition: opacity 180ms ease;
+    }
+
+    .video-typed-caption::after {
+      content: "";
+      display: inline-block;
+      width: 1px;
+      height: 1em;
+      margin-left: 3px;
+      vertical-align: -2px;
+      background: #151515;
+      animation: cursor 700ms step-end infinite;
+    }
+
+    .paper-link {
+      color: #086f9e;
+      text-decoration: underline;
+      text-decoration-color: rgba(var(--accent-rgb), .45);
+      text-underline-offset: 3px;
+    }
+
+    .prototype-media-grid {
+      width: min(100%, 500px);
+      margin: 42px auto 0;
+      display: grid;
+      grid-template-columns: repeat(2, 240px);
+      justify-content: center;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .prototype-media {
+      min-width: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .prototype-video-frame {
+      position: relative;
+      width: 240px;
+      max-width: none;
+      height: 240px;
+      margin-inline: auto;
+      overflow: hidden;
+      border: 1px solid #d5d1ca;
+      border-radius: 12px;
+      background: #101010;
+      box-shadow: 0 14px 38px rgba(20,18,15,.09);
+    }
+
+    .prototype-video-frame video {
+      width: auto;
+      height: 100%;
+      display: block;
+      aspect-ratio: 678 / 478;
+      background: #101010;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .prototype-execution-frame video {
+      width: 100%;
+      height: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+    }
+
+    .training-loop-frame {
+      background: #101010;
+    }
+
+    .media-ego { grid-column: 1; grid-row: 1; }
+    .media-simulation { grid-column: 2; grid-row: 1; }
+    .media-teleoperation { grid-column: 1; grid-row: 2; }
+    .media-autonomous { grid-column: 2; grid-row: 2; }
+
+    .training-loop-frame img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      background: #101010;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .training-speed-label {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      padding: 5px 9px;
+      border-radius: 4px;
+      color: white;
+      background: rgba(0, 0, 0, .72);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .prototype-media figcaption {
+      max-width: 320px;
+      margin: 9px auto 0;
+      color: #9a9690;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 10px;
+      line-height: 1.4;
+      text-align: center;
+    }
+
+    .prototype-panel-title {
+      margin: 48px 0 20px;
+      text-align: center;
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: -.01em;
+    }
+
+    .prototype-panel-title + .prototype-media-grid {
+      margin-top: 0;
+    }
+
+    .prototype-panel-title + .prototype-views {
+      margin-top: 0;
+    }
+
+    .prototype-views {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin: 28px auto 0;
+    }
+
+    .prototype-view {
+      min-width: 0;
+      margin: 0;
+      padding: 14px 12px 10px;
+      border: 1px solid #e1ded8;
+      border-radius: 10px;
+      background: #f4f3f0;
+    }
+
+    .prototype-view img {
+      width: 100%;
+      height: 270px;
+      display: block;
+      object-fit: contain;
+    }
+
+    .prototype-view figcaption {
+      margin-top: 10px;
+      padding-top: 9px;
+      border-top: 1px solid #e0ddd7;
+      color: #9a9690;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 10px;
+      line-height: 1.4;
+    }
+
+    .contact-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: var(--accent);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0;
+    }
+
+    .literature-list {
+      margin: 8px 0 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: literature;
+    }
+
+    .literature-list li {
+      position: relative;
+      counter-increment: literature;
+      padding: 20px 0 20px 42px;
+      border-bottom: 1px solid var(--line);
+      line-height: 1.65;
+    }
+
+    .literature-list li::before {
+      content: "(" counter(literature) ")";
+      position: absolute;
+      top: 22px;
+      left: 0;
+      color: var(--accent);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+
+    .literature-list strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 16px;
+    }
+
+    .literature-list p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .section-subheading {
+      margin: 64px 0 24px;
+      padding-top: 28px;
+      border-top: 1px solid var(--line);
+      font-size: 25px;
+      letter-spacing: -.025em;
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 30px;
+      padding: 42px 0 56px;
+      color: #77736d;
+      font-size: 12px;
+    }
+
+    .hepha-note {
+      width: min(1024px, calc(100% - 40px));
+      margin: 0 auto 42px;
+      padding-top: 32px;
+      border-top: 1px solid var(--line);
+      color: #5f5b56;
+      font-size: 16px;
+      font-style: italic;
+      line-height: 1.7;
+      text-align: center;
+    }
+
+    .hepha-note p {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 760px) {
+      .site-header { height: auto; }
+      .nav { height: 58px; gap: 16px; overflow-x: auto; }
+      .nav a:not(.brand) { font-size: 12px; white-space: nowrap; }
+      .hero { padding-top: 52px; }
+      .system-stage { height: 640px; }
+      .rag { left: 5%; }
+      .erp { right: 5%; }
+      .article-section { grid-template-columns: 1fr; gap: 18px; padding: 70px 0; }
+      .text-columns, .subgrid, .prototype-overview { grid-template-columns: 1fr; gap: 32px; }
+      .subgrid article + article { padding-left: 0; border-left: 0; }
+      .step { grid-template-columns: 42px 1fr; }
+      .step p { grid-column: 2; }
+      .prototype-media-grid { width: min(100%, 500px); grid-template-columns: 1fr; gap: 24px; }
+      .media-ego, .media-simulation, .media-teleoperation, .media-autonomous { grid-column: auto; grid-row: auto; }
+      .training-pyramid { width: min(100%, 440px); margin-inline: auto; }
+      .pyramid-stack { width: 104%; margin-left: -2%; }
+      .prototype-view { padding: 10px 8px 8px; }
+      .prototype-view img { height: 210px; }
+    }
+
+    @media (max-width: 560px) {
+      .hero, .article-section, .footer, .nav, .hepha-note { width: min(100% - 28px, 1024px); }
+      .brand { margin-right: 2px; }
+      h1 { font-size: 48px; }
+      .intro { font-size: 18px; }
+      .system-stage { height: 650px; }
+      .search-bar { height: 56px; padding: 0 15px; }
+      .typed-wrap { font-size: 12px; }
+      .coordinator { top: 154px; }
+      .rag, .erp { top: 238px; width: 130px; padding: 12px 8px; }
+      .robot-pool { top: 356px; width: 230px; }
+      .flow-caption { top: 107px; font-size: 10px; }
+      .flow-caption-two { top: 315px; }
+      .flow-caption-three { top: 458px; }
+      .video-typed-caption { font-size: 12px; }
+      .prototype-views { grid-template-columns: 1fr; gap: 12px; }
+      .prototype-view img { height: 280px; }
+      .footer { flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+      .typed { width: 36ch; border-right: 0; }
+      .flow-caption-one, .flow-caption-two { display: none; }
+      .flow-caption-three { opacity: 1; transform: translateX(-50%); }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="Page sections">
+      <a class="brand" href="../index.html">Hepha<i>.</i></a>
+      <a href="#top">Hepha</a>
+      <a href="#problem">The Problem</a>
+      <a href="#system">System Architecture</a>
+      <a href="#prototype">Prototype</a>
+      <a href="#example">Example Application</a>
+      <a href="#literature">Literature</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <h1>LLM-guided multi-robot policies<span class="dot">.</span></h1>
+      <p class="intro">Hepha combines LLM task planning, enterprise context, and fine-tuned π0.6 robot policies for fully autonomous execution.</p>
+
+      <figure class="system-figure" aria-label="Animated LLM-to-robot policy execution flow">
+        <div class="system-stage">
+          <div class="search-bar" aria-label="Ask AI prompt">
+            <span class="ai-label" aria-hidden="true">Ask AI</span>
+            <span class="typed-wrap"><span class="typed">Retrieve the <span class="typed-blue">blue</span> item and deliver to packing</span></span>
+          </div>
+
+          <p class="flow-caption flow-caption-one"><strong>(1)</strong>Coordinator translates the request into a π0.6 task.</p>
+          <p class="flow-caption flow-caption-two"><strong>(2)</strong>The assigned robot executes the π0.6 task.</p>
+          <p class="flow-caption flow-caption-three"><strong>(3)</strong>On task success, LLM Context and ERP state are updated.</p>
+
+          <div class="node coordinator"><b>LLM Coordinator</b></div>
+          <div class="node rag"><b>RAG</b></div>
+          <div class="node erp"><b>ERP</b></div>
+
+          <div class="robot-pool">
+            <b>Robot policy pool</b>
+            <div class="robots" aria-label="Robots R0, R1 and R2"><span>R0</span><span class="active">R1</span><span>R2</span></div>
+          </div>
+
+          <svg class="connections" viewBox="0 0 1000 720" role="img" aria-label="Prompt and context flow through the LLM coordinator to robot policies in an autonomous environment">
+            <path class="wire" d="M500 96 L500 166" />
+            <path class="wire" d="M260 272 L408 206" />
+            <path class="wire" d="M740 272 L592 206" />
+            <path class="wire" d="M500 236 L500 344" />
+            <path class="wire" d="M500 438 L500 482" />
+
+            <g aria-hidden="true">
+              <rect class="environment-box" x="80" y="315" width="840" height="350" rx="16" />
+              <text class="environment-title" x="106" y="343">AUTONOMOUS ROBOT ENVIRONMENT</text>
+              <rect class="zone zone-active" x="145" y="540" width="230" height="110" rx="8" />
+              <rect class="zone" x="625" y="540" width="230" height="110" rx="8" />
+              <text class="zone-title" x="170" y="575">STORAGE</text>
+              <text class="zone-title" x="650" y="575">PACKING</text>
+            </g>
+
+            <circle class="packet query-packet" r="5">
+              <animateMotion dur="24s" repeatCount="indefinite" path="M500 96 L500 166" keyPoints="0;0;1;1" keyTimes="0;0.25;0.34;1" />
+              <animate attributeName="opacity" dur="24s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;.24;.25;.33;.34;1" />
+            </circle>
+
+            <circle class="packet rag-packet" r="5">
+              <animateMotion dur="24s" repeatCount="indefinite" path="M260 272 L408 206" keyPoints="0;0;1;1" keyTimes="0;.34;.44;1" />
+              <animate attributeName="opacity" dur="24s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;.33;.34;.43;.44;1" />
+            </circle>
+
+            <circle class="packet erp-packet" r="5">
+              <animateMotion dur="24s" repeatCount="indefinite" path="M740 272 L592 206" keyPoints="0;0;1;1" keyTimes="0;.35;.45;1" />
+              <animate attributeName="opacity" dur="24s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;.34;.35;.44;.45;1" />
+            </circle>
+
+            <circle class="packet command-packet" r="5">
+              <animateMotion dur="24s" repeatCount="indefinite" path="M500 236 L500 344" keyPoints="0;0;1;1" keyTimes="0;.47;.59;1" />
+              <animate attributeName="opacity" dur="24s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;.46;.47;.58;.59;1" />
+            </circle>
+
+            <circle class="packet success-packet" r="5">
+              <animateMotion dur="24s" repeatCount="indefinite" path="M740 615 L740 272" keyPoints="0;0;1;1" keyTimes="0;.88;.98;1" />
+              <animate attributeName="opacity" dur="24s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;.87;.88;.97;1" />
+            </circle>
+
+            <g class="moving-robot">
+              <circle r="16" />
+              <text y="1">R1</text>
+              <animateMotion dur="24s" repeatCount="indefinite" path="M500 482 L260 615 L740 615" keyPoints="0;0;.34;1;1" keyTimes="0;.61;.76;.96;1" />
+              <animate attributeName="opacity" dur="24s" repeatCount="indefinite" values="0;0;1;1;0" keyTimes="0;.60;.61;.97;1" />
+            </g>
+          </svg>
+        </div>
+
+      </figure>
+    </section>
+
+    <section class="article-section" id="problem">
+      <div class="section-number">01 /</div>
+      <div class="section-body">
+        <h2>The Problem</h2>
+        <div class="text-columns">
+          <p>Natural-language objectives must be grounded in inventory state, retrieved procedures, robot capabilities, and safety constraints. The research problem is compiling an LLM plan into an executable task graph.</p>
+          <p>Hepha separates probabilistic reasoning from deterministic control: the LLM proposes, typed interfaces validate, robot policies execute, and completion predicates authorize state updates.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="article-section" id="system">
+      <div class="section-number">02 /</div>
+      <div class="section-body">
+        <h2>System architecture</h2>
+        <p>The LLM compiles grounded context into a typed task graph. Deterministic services validate every node before policy execution.</p>
+        <div class="subgrid">
+          <article><h3>LLM Context</h3><p>RAG provides procedures and policy metadata; ERP provides live inventory, location, and resource state.</p></article>
+          <article><h3>LLM planning</h3><p>The LLM emits a typed dependency graph from a constrained skill vocabulary. A validator enforces schemas, permissions, and preconditions.</p></article>
+          <article><h3>Robot policy orchestration</h3><p>The coordinator schedules policies by capability and availability, locks shared resources, and triggers recovery.</p></article>
+        </div>
+
+        <h3 class="section-subheading">Request-to-execution protocol</h3>
+<div class="protocol">
+          <div class="step"><span>01</span><h3>Ground</h3><p>Build LLM Context from RAG and ERP state.</p></div>
+          <div class="step"><span>02</span><h3>Plan</h3><p>Generate a typed, dependency-aware task graph.</p></div>
+          <div class="step"><span>03</span><h3>Validate</h3><p>Reject unsafe, ambiguous, or infeasible actions.</p></div>
+          <div class="step"><span>04</span><h3>Execute</h3><p>Dispatch navigation and manipulation robot policies.</p></div>
+          <div class="step"><span>05</span><h3>Verify</h3><p>Evaluate completion predicates and commit ERP state.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="article-section" id="prototype">
+      <div class="section-number">03 /</div>
+      <div class="section-body">
+        <h2>Prototype</h2>
+        <div class="prototype-overview">
+          <div class="prototype-copy">
+            <p>Hepha integrates two 6-DoF arms with a 3-axis Cartesian gantry, yielding a 15-DoF research platform.</p>
+            <p>Our fine-tuned and modified π0.6 Robot Policy maps vision, robot state, and language instructions to action chunks. Training progresses from pretrained VLM representations through egocentric, simulation, and behavior-cloning data, followed by RaC mid-training on recovery-and-correction interventions. The π0.6 adaptation note is in preparation; see the published <a class="paper-link" href="https://arxiv.org/abs/2509.07953" target="_blank" rel="noreferrer">RaC paper</a> for the recovery-and-correction method.</p>
+          </div>
+          <div class="training-pyramid" role="img" aria-label="Policy training pyramid: pretrained vision-language-model internet data, multi-task egocentric data, multi-task simulation, multi-task behavior-cloning teleoperation data, and RaC recovery-and-correction training">
+            <div class="rac-loop" aria-hidden="true">
+              <svg viewBox="0 0 220 94">
+                <defs><marker id="rac-arrowhead" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#087eae" stroke="none"></path></marker></defs>
+                <path d="M52 72 C20 55 30 15 91 10 C157 4 199 27 185 64 C178 81 156 87 139 82" marker-end="url(#rac-arrowhead)"></path>
+              </svg>
+              <span class="rac-loop-label">RaC training of π0</span>
+            </div>
+            <svg class="pyramid-stack" viewBox="0 0 400 250" aria-hidden="true">
+              <path class="pyramid-layer-shape pyramid-bc" d="M190 13 Q200 1 210 13 L267 86 Q269 90 264 90 H136 Q131 90 133 86 Z"></path>
+              <polygon class="pyramid-sim" points="132,90 268,90 310,145 90,145"></polygon>
+              <polygon class="pyramid-ego" points="90,145 310,145 352,200 48,200"></polygon>
+              <path class="pyramid-layer-shape pyramid-web" d="M48 200 H352 L365 217 Q395 250 350 250 H50 Q5 250 35 217 Z"></path>
+              <text class="pyramid-top-label" x="200" y="47" text-anchor="middle">
+                <tspan x="200">Multi-</tspan><tspan x="200" dy="11">task</tspan><tspan x="200" dy="11">teleop data</tspan>
+              </text>
+              <text x="200" y="121" text-anchor="middle">Multi-task simulation</text>
+              <text x="200" y="176" text-anchor="middle">Multi-task egocentric data</text>
+              <text x="200" y="229" text-anchor="middle">Internet data · VLM</text>
+              <path class="pyramid-outline" d="M184 20 Q200 0 216 20 L365 217 Q395 250 350 250 H50 Q5 250 35 217 Z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <h3 class="prototype-panel-title">Robot upper part: bimanual robot on π0</h3>
+        <div class="prototype-media-grid" aria-label="Prototype and multimodal policy training videos">
+          <figure class="prototype-media media-ego">
+            <div class="prototype-video-frame training-loop-frame">
+              <img src="assets/embedded/embedded-01.gif" alt="Shuffled accelerated sequence of six complete human egocentric hand-manipulation trajectories">
+              <div class="training-speed-label">Human ego, x12</div>
+            </div>
+            <figcaption>Human egocentric hand trajectories · <a class="paper-link" href="https://huggingface.co/datasets/zywu2115/OSCAR_human" target="_blank" rel="noreferrer">OSCAR training corpus</a></figcaption>
+          </figure>
+          <figure class="prototype-media media-simulation">
+            <div class="prototype-video-frame training-loop-frame">
+              <img src="assets/embedded/embedded-02.gif" alt="Shuffled accelerated sequence of four complete MuJoCo IK training episodes">
+              <div class="training-speed-label">Simulation, x24</div>
+            </div>
+            <figcaption>MuJoCo IK demonstrations · simulation training dataset</figcaption>
+          </figure>
+          <figure class="prototype-media media-teleoperation">
+            <div class="prototype-video-frame training-loop-frame">
+              <img src="assets/embedded/embedded-03.gif" alt="Shuffled accelerated sequence of eight complete teleoperation episodes from the Hepha physical policy training dataset">
+              <div class="training-speed-label">Teleoperation, x3</div>
+            </div>
+            <figcaption>Teleoperation demonstrations · policy training dataset</figcaption>
+          </figure>
+          <figure class="prototype-media media-autonomous">
+            <div class="prototype-video-frame prototype-execution-frame">
+          <video autoplay muted loop playsinline preload="auto" tabindex="-1" disablepictureinpicture controlslist="nodownload nofullscreen noremoteplayback" aria-label="Looping video of the Hepha dual-arm prototype" poster="assets/embedded/embedded-04.jpg">
+            <source src="assets/embedded/embedded-05.mp4" type="video/mp4">
+            Your browser does not support embedded MP4 video.
+          </video>
+          <div class="training-speed-label">Autonomous, x 1</div>
+        </div>
+            <figcaption>Autonomous prototype execution</figcaption>
+          </figure>
+        </div>
+
+        <h3 class="prototype-panel-title">Robot lower part: automated moving robot (AMR)</h3>
+        <div class="prototype-views" aria-label="Prototype robot views">
+          <figure class="prototype-view">
+            <img src="assets/embedded/embedded-06.png" alt="Front view of the Hepha mobile manipulation platform">
+            <figcaption>Front view · gantry and dual-arm assembly</figcaption>
+          </figure>
+          <figure class="prototype-view">
+            <img src="assets/embedded/embedded-07.png" alt="Rear view of the Hepha mobile manipulation platform">
+            <figcaption>Rear view · drive and control architecture</figcaption>
+          </figure>
+          <figure class="prototype-view">
+            <img src="assets/embedded/embedded-08.png" alt="Three-quarter view of the Hepha mobile manipulation platform">
+            <figcaption>Three-quarter view · integrated research platform</figcaption>
+          </figure>
+        </div>
+
+        <h3 class="section-subheading">Evaluation framework</h3>
+<div class="text-columns">
+          <p>Evaluation spans retrieval, cross-zone transport, robot handoff, stocking, and failure recovery under varied objects, targets, and fleet availability.</p>
+          <p>The primary metric is end-to-end success rate. Secondary metrics include policy success, replans, latency, intervention rate, ERP consistency, and safety violations.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="article-section" id="example">
+      <div class="section-number">04 /</div>
+      <div class="section-body">
+        <h2>Example Application</h2>
+        <p class="video-intro">A greenhouse provides a warehouse-like multi-robot test environment. Autonomous agents share aisles, coordinate policies, and operate on common state.</p>
+        <div class="video-frame">
+          <video autoplay muted loop playsinline preload="auto" tabindex="-1" disablepictureinpicture controlslist="nodownload nofullscreen noremoteplayback" aria-label="Looping greenhouse robot application example" poster="assets/embedded/embedded-09.jpg">
+            <source src="assets/embedded/embedded-10.mp4" type="video/mp4">
+            Your browser does not support embedded MP4 video.
+          </video>
+          <div class="video-end-card" aria-hidden="true">
+            <div class="end-logo">
+              <svg viewBox="0 0 64 64" role="img" aria-label="Hepha donut mark"><circle cx="32" cy="32" r="17" fill="none" stroke="black" stroke-width="10" /></svg>
+            </div>
+            <div class="end-brand">hepha</div>
+          </div>
+        </div>
+        <div class="video-caption-track" aria-live="off">
+          <p class="video-typed-caption"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="article-section" id="literature">
+      <div class="section-number">05 /</div>
+      <div class="section-body">
+        <h2>Literature</h2>
+        <ol class="literature-list">
+          <li>
+            <strong>π0 vision-language-action policies</strong>
+            <p>Black et al., <a class="paper-link" href="https://arxiv.org/abs/2410.24164">π0: A Vision-Language-Action Flow Model for General Robot Control</a>; Physical Intelligence et al., <a class="paper-link" href="https://arxiv.org/abs/2504.16054">π0.5: A Vision-Language-Action Model with Open-World Generalization</a>.</p>
+          </li>
+          <li>
+            <strong>RaC recovery-and-correction training</strong>
+            <p>Hu et al., Carnegie Mellon University, <a class="paper-link" href="https://arxiv.org/abs/2509.07953">RaC: Robot Learning for Long-Horizon Tasks by Scaling Recovery and Correction</a> (2025).</p>
+          </li>
+          <li>
+            <strong>Hepha technical reports</strong>
+            <p>Technical notes in preparation: <em>LLM-Guided Multi-Robot Policy Orchestration</em> and <em>A Modular 15-DoF Platform for Autonomous Mobile Manipulation</em>.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="article-section" id="contact">
+      <div class="section-number">06 /</div>
+      <div class="section-body">
+        <h2>Contact</h2>
+        <p>Research collaboration, policy evaluation, and technical inquiries.</p>
+        <a class="contact-link" href="mailto:meyniertristan10@gmail.com">meyniertristan10@gmail.com</a>
+      </div>
+    </section>
+  </main>
+
+  <aside class="hepha-note" aria-label="Origin of the Hepha name">
+    <p>Hepha takes its name from Hephaistos, god of craftsmanship, tools, and machinery—a symbol of technology not as a replacement for human agency, but as a means of extending what people can perceive, create, and accomplish.</p>
+  </aside>
+
+  <footer class="footer">
+    <span>Hepha · Multi-robot warehouse execution</span>
+    <span>π0.6 policy adaptation · <a href="../index.html">Portfolio home ↑</a></span>
+  </footer>
+  <script>
+    (() => {
+      const video = document.querySelector('.video-frame video');
+      const caption = document.querySelector('.video-typed-caption');
+      const endCard = document.querySelector('.video-end-card');
+      const steps = [
+        'Trigger a task in the robot policy pool.',
+        'Dispatch the seed Robot Policy.',
+        'Write seeded-item state to the greenhouse database.',
+        'Dispatch the monitoring Robot Policy.',
+        'Write monitored-item state to the greenhouse database.',
+        'Dispatch the collection Robot Policy.',
+        'Write collected-item state to the greenhouse database.'
+      ];
+      if (!video || !caption || !endCard) return;
+
+      const updateVideoStep = () => {
+        const duration = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 58.488;
+        const activeIndex = Math.min(steps.length - 1, Math.floor((video.currentTime / duration) * steps.length));
+        const segmentDuration = duration / steps.length;
+        const segmentProgress = (video.currentTime - activeIndex * segmentDuration) / segmentDuration;
+        const characters = Math.max(1, Math.ceil(Math.min(1, segmentProgress / .38) * steps[activeIndex].length));
+        caption.textContent = `(${activeIndex + 1}) ${steps[activeIndex].slice(0, characters)}`;
+
+        const remaining = duration - video.currentTime;
+        const introOpacity = video.currentTime < 3
+          ? 1
+          : video.currentTime < 5
+            ? 1 - ((video.currentTime - 3) / 2)
+            : 0;
+        const endProgress = remaining < 10 ? Math.min(1, (10 - remaining) / 2) : 0;
+        endCard.style.opacity = Math.max(0, Math.min(1, introOpacity, 1), Math.min(1, endProgress)).toFixed(3);
+        caption.style.opacity = video.currentTime < 5 || remaining < 10 ? '0' : '1';
+      };
+
+      ['loadedmetadata', 'timeupdate', 'seeked', 'play'].forEach((event) => video.addEventListener(event, updateVideoStep));
+      updateVideoStep();
+    })();
+  </script>
+</body>
+</html>

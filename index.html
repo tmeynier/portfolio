@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Tristan Meynier is a machine learning and software engineer working on production ML systems, robot learning, and independent robotics research.">
+  <meta name="theme-color" content="#fbfbfa">
+  <link rel="canonical" href="https://tristanmeynier.com/">
+  <title>Tristan Meynier — ML &amp; Software Engineer</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='white'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='black' stroke-width='10'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      --ink: #111312;
+      --paper: #fbfbfa;
+      --paper-2: #f2f3f3;
+      --muted: #626560;
+      --line: #d9dbd8;
+      --accent: #174f78;
+      --max: 1120px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    ::selection { color: white; background: var(--accent); }
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    .shell { width: min(var(--max), calc(100% - 48px)); margin: 0 auto; }
+
+    .skip-link {
+      position: fixed;
+      z-index: 100;
+      top: 10px;
+      left: 10px;
+      padding: 10px 14px;
+      color: white;
+      background: var(--ink);
+      transform: translateY(-160%);
+    }
+    .skip-link:focus { transform: translateY(0); }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid rgba(217, 219, 216, .86);
+      background: rgba(251, 251, 250, .92);
+      backdrop-filter: blur(16px);
+    }
+    .nav {
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+    .brand {
+      margin-right: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 650;
+    }
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      border: 7px solid var(--ink);
+      border-radius: 50%;
+    }
+    .nav-link { color: #595c57; font-size: 14px; }
+    .nav-link:hover, .nav-link:focus-visible { color: var(--ink); }
+    .nav-cta { padding: 9px 13px; border: 1px solid var(--ink); font-weight: 700; }
+    .nav-cta:hover, .nav-cta:focus-visible { color: white; background: var(--ink); }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(280px, .65fr);
+      gap: clamp(44px, 8vw, 110px);
+      align-items: center;
+      padding: 90px 0 100px;
+    }
+    .eyebrow, .section-index, .meta, .project-number, .project-status {
+      font: 700 11px/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+    .eyebrow { margin: 0 0 24px; color: var(--accent); }
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font: 500 clamp(54px, 7vw, 86px)/.97 Georgia, "Times New Roman", serif;
+      letter-spacing: -.057em;
+    }
+    .hero-intro {
+      max-width: 680px;
+      margin: 28px 0 0;
+      color: var(--muted);
+      font: 400 clamp(19px, 2.2vw, 24px)/1.48 Georgia, "Times New Roman", serif;
+    }
+    .hero-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 34px; }
+    .button {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 17px;
+      border: 1px solid var(--ink);
+      font-size: 14px;
+      font-weight: 700;
+      transition: color .2s ease, background .2s ease, transform .2s ease;
+    }
+    .button.primary { color: white; background: var(--ink); }
+    .button:hover, .button:focus-visible { transform: translateY(-2px); }
+    .button:not(.primary):hover, .button:not(.primary):focus-visible { background: var(--paper-2); }
+    .portrait-wrap { margin: 0; }
+    .portrait {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1;
+      object-fit: cover;
+      object-position: 50% 36%;
+      border-radius: 50%;
+      filter: saturate(.78) contrast(1.02);
+    }
+    .portrait-wrap figcaption {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 2px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .section { padding: 100px 0; border-top: 1px solid var(--line); }
+    .section-head {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      gap: 34px;
+      margin-bottom: 48px;
+    }
+    .section-index { color: var(--muted); }
+    .section-title {
+      max-width: 850px;
+      margin: 0;
+      font: 500 clamp(38px, 5vw, 56px)/1.04 Georgia, "Times New Roman", serif;
+      letter-spacing: -.042em;
+    }
+    .section-lead { max-width: 700px; margin: 18px 0 0; color: var(--muted); font-size: 17px; line-height: 1.65; }
+    .career-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(260px, .55fr);
+      gap: clamp(56px, 8vw, 100px);
+      align-items: start;
+    }
+    .timeline { border-top: 1px solid var(--ink); }
+    .role {
+      display: grid;
+      grid-template-columns: 125px minmax(0, 1fr);
+      gap: 22px;
+      padding: 23px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .role time { color: var(--muted); font: 700 11px/1.4 ui-monospace, monospace; letter-spacing: .04em; text-transform: uppercase; }
+    .role h3 { margin: 0; font-size: 18px; line-height: 1.25; }
+    .role p { margin: 8px 0 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .side-note { border-top: 1px solid var(--ink); }
+    .note-block { padding: 21px 0 24px; border-bottom: 1px solid var(--line); }
+    .note-block .meta { color: var(--muted); }
+    .note-block h3 { margin: 10px 0 7px; font: 500 22px/1.2 Georgia, serif; }
+    .note-block p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .skill-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+    .skill-list span { padding: 6px 9px; border: 1px solid var(--line); color: #494c48; font-size: 12px; }
+
+    .projects { padding-bottom: 72px; }
+    .project-list { border-top: 1px solid var(--ink); }
+    .project {
+      display: grid;
+      grid-template-columns: 62px minmax(0, 1fr) minmax(190px, .45fr) 44px;
+      gap: 24px;
+      align-items: center;
+      min-height: 200px;
+      padding: 30px 0;
+      border-bottom: 1px solid var(--line);
+      transition: padding .25s ease, background .25s ease;
+    }
+    .project:hover, .project:focus-visible { padding-left: 18px; padding-right: 18px; background: var(--paper-2); outline: none; }
+    .project-number { align-self: start; padding-top: 8px; color: var(--accent); }
+    .project-copy h3 { margin: 0; font: 500 clamp(30px, 4vw, 48px)/1.02 Georgia, serif; letter-spacing: -.035em; }
+    .project-copy p { max-width: 630px; margin: 14px 0 0; color: var(--muted); font-size: 15px; line-height: 1.6; }
+    .project-meta { align-self: stretch; display: grid; align-content: center; gap: 14px; border-left: 1px solid var(--line); padding-left: 24px; }
+    .project-status { color: var(--accent); }
+    .project-tags { color: var(--muted); font-size: 13px; line-height: 1.6; }
+    .project-arrow { font: 400 28px/1 Georgia, serif; transition: transform .2s ease; }
+    .project:hover .project-arrow, .project:focus-visible .project-arrow { transform: translateX(6px); }
+
+    .contact {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 40px;
+      align-items: end;
+      padding: 88px 0 92px;
+      border-top: 1px solid var(--ink);
+    }
+    .contact h2 { max-width: 720px; margin: 0; font: 500 clamp(42px, 6vw, 68px)/1 Georgia, serif; letter-spacing: -.05em; }
+    .contact p { max-width: 650px; margin: 22px 0 0; color: var(--muted); font-size: 16px; line-height: 1.65; }
+    .contact-links { display: grid; gap: 9px; min-width: 190px; }
+    footer { padding: 28px 0 38px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+    .footer-row { display: flex; justify-content: space-between; gap: 24px; }
+    .footer-row a { color: var(--ink); font-weight: 700; }
+
+    @media (max-width: 850px) {
+      .nav-link:not(.nav-cta) { display: none; }
+      .hero, .career-grid { grid-template-columns: 1fr; }
+      .hero { padding-top: 62px; }
+      .hero-copy { order: 2; }
+      .portrait-wrap { width: min(330px, 76vw); margin-inline: auto; order: 1; }
+      .project { grid-template-columns: 48px minmax(0, 1fr) 36px; }
+      .project-meta { grid-column: 2 / 3; border-left: 0; padding-left: 0; }
+      .contact { grid-template-columns: 1fr; align-items: start; }
+      .contact-links { grid-template-columns: repeat(2, max-content); }
+    }
+    @media (max-width: 620px) {
+      .shell { width: min(var(--max), calc(100% - 28px)); }
+      .nav { min-height: 58px; }
+      .brand { font-size: 13px; }
+      .hero { gap: 40px; padding-bottom: 76px; }
+      h1 { font-size: clamp(48px, 16vw, 72px); }
+      .section { padding: 76px 0; }
+      .section-head { grid-template-columns: 1fr; gap: 14px; margin-bottom: 34px; }
+      .role { grid-template-columns: 1fr; gap: 7px; }
+      .project { grid-template-columns: 38px minmax(0, 1fr); gap: 14px; min-height: 0; padding: 26px 0; }
+      .project-meta { grid-column: 2; }
+      .project-arrow { display: none; }
+      .project:hover, .project:focus-visible { padding-left: 8px; padding-right: 8px; }
+      .contact-links { grid-template-columns: 1fr; }
+      .footer-row { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+  <header class="site-header">
+    <nav class="nav shell" aria-label="Primary navigation">
+      <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true"></span>Tristan Meynier</a>
+      <a class="nav-link" href="#career">Career</a>
+      <a class="nav-link" href="#projects">Personal Projects</a>
+      <a class="nav-link" href="#contact">Contact</a>
+      <a class="nav-link nav-cta" href="https://www.linkedin.com/in/tristan-meynier-1242911b3/" target="_blank" rel="noreferrer">LinkedIn ↗</a>
+    </nav>
+  </header>
+
+  <main id="content">
+    <section class="hero shell" id="top">
+      <div class="hero-copy">
+        <p class="eyebrow">ML &amp; software engineer</p>
+        <h1>Tristan<br>Meynier.</h1>
+        <p class="hero-intro">I am a passionate machine learning and software engineer who enjoys exploring the latest advances in robotics and robot policies in my free time.</p>
+        <div class="hero-links">
+          <a class="button primary" href="#projects">Explore my passion</a>
+          <a class="button" href="assets/tristan-meynier-cv.pdf">CV · PDF</a>
+          <a class="button" href="https://github.com/tmeynier" target="_blank" rel="noreferrer">GitHub ↗</a>
+        </div>
+      </div>
+      <figure class="portrait-wrap">
+        <img class="portrait" src="assets/profile.jpeg" alt="Portrait of Tristan Meynier" width="800" height="800">
+        <figcaption><span>Switzerland</span><span>English · French · German</span></figcaption>
+      </figure>
+    </section>
+
+    <section class="section shell" id="career">
+      <div class="section-head">
+        <span class="section-index">01 / Career</span>
+        <h2 class="section-title">Career</h2>
+      </div>
+
+      <div class="career-grid">
+        <div class="timeline">
+          <article class="role">
+            <time datetime="2026-02">2026 — now</time>
+            <div><h3>ML Scientist II · Expedia Group</h3><p>Pricing optimization for hotels and flights, large-scale experimentation, and production ML in Geneva.</p></div>
+          </article>
+          <article class="role">
+            <time datetime="2023-06">2023 — now</time>
+            <div><h3>Founder &amp; ML Engineer · Hepha AI</h3><p>Independent robot-learning research spanning VLA policies, simulation, custom hardware, deployment, and technical writing.</p></div>
+          </article>
+          <article class="role">
+            <time>2024 — 2026</time>
+            <div><h3>Senior ML Engineer · Syngenta</h3><p>Applied AI research, Python packages, model-serving APIs, and production infrastructure in Basel.</p></div>
+          </article>
+          <article class="role">
+            <time datetime="2021-10">2021 — 2024</time>
+            <div><h3>(Senior) Data Scientist · KPMG</h3><p>Forecasting and NLP systems for pricing optimization and financial-risk prediction in Zürich.</p></div>
+          </article>
+          <article class="role">
+            <time datetime="2021-03">2021</time>
+            <div><h3>Master thesis · IBM Research</h3><p>Deep-learning research for 3D genome reconstruction, improving prior-work prediction error with transfer learning.</p></div>
+          </article>
+          <article class="role">
+            <time>Earlier</time>
+            <div><h3>Genistat AG · Virtual Traffic Lights</h3><p>Part-time machine-learning and software-engineering roles in Zürich and Pittsburgh.</p></div>
+          </article>
+        </div>
+
+        <aside class="side-note" aria-label="Education and technical profile">
+          <div class="note-block">
+            <span class="meta">Education · 2019–2021</span>
+            <h3>MSc, Data Science</h3>
+            <p>ETH Zürich</p>
+          </div>
+          <div class="note-block">
+            <span class="meta">Education · 2018–2019</span>
+            <h3>Computer Science</h3>
+            <p>Carnegie Mellon University · Dean’s List</p>
+          </div>
+          <div class="note-block">
+            <span class="meta">Education · 2016–2018</span>
+            <h3>BSc, Computer Science</h3>
+            <p>EPFL</p>
+          </div>
+          <div class="note-block">
+            <span class="meta">Selected stack</span>
+            <div class="skill-list" aria-label="Selected technical skills">
+              <span>Python</span><span>PyTorch</span><span>PySpark</span><span>Databricks</span><span>Docker</span><span>AWS</span><span>Azure</span><span>PostgreSQL</span><span>Django</span><span>React</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section projects shell" id="projects">
+      <div class="section-head">
+        <span class="section-index">02 / Personal Projects</span>
+        <h2 class="section-title">Research and Projects</h2>
+      </div>
+
+      <div class="project-list">
+        <a class="project" href="hepha/index.html">
+          <span class="project-number">01</span>
+          <div class="project-copy">
+            <h3>Hepha</h3>
+            <p>An end-to-end robotics project combining language-model planning, enterprise context, robot policies, simulation, and multi-robot execution.</p>
+          </div>
+          <div class="project-meta"><span class="project-status">Active project</span><span class="project-tags">Robotics · VLA · LLM planning · Systems</span></div>
+          <span class="project-arrow" aria-hidden="true">→</span>
+        </a>
+
+        <a class="project" href="what-makes-a-generalist-robot-policy/index.html">
+          <span class="project-number">02</span>
+          <div class="project-copy">
+            <h3>What Makes a Generalist Robot Policy?</h3>
+            <p>A matched study of ACT and π<sub>0.5</sub>, simulation, multi-task learning, egocentric human demonstrations, and recovery on a custom low-cost bimanual robot.</p>
+          </div>
+          <div class="project-meta"><span class="project-status">Technical report · 2026</span><span class="project-tags">Robot learning · Imitation learning · Bimanual manipulation</span></div>
+          <span class="project-arrow" aria-hidden="true">→</span>
+        </a>
+
+        <a class="project" href="what-robot-data-should-we-collect-next/index.html">
+          <span class="project-number">03</span>
+          <div class="project-copy">
+            <h3>What Robot Data Should We Collect Next?</h3>
+            <p>A cost-aware experimental design extending <em>RaC — Robot Learning for Long-Horizon Tasks by Scaling Recovery and Correction</em> to compare behavior cloning, simulation, egocentric data, corrections, and recovery-and-correction data.</p>
+          </div>
+          <div class="project-meta"><span class="project-status">Paper drafted · Study in design</span><span class="project-tags">RaC · Data strategy · Recovery · Evaluation</span></div>
+          <span class="project-arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="contact shell" id="contact">
+      <div>
+        <h2>Contact Details</h2>
+      </div>
+      <div class="contact-links">
+        <a class="button primary" href="mailto:meyniertristan10@gmail.com">Email me</a>
+        <a class="button" href="https://www.linkedin.com/in/tristan-meynier-1242911b3/" target="_blank" rel="noreferrer">LinkedIn ↗</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-row shell">
+      <span>© 2026 Tristan Meynier</span>
+      <a href="#top">Back to top ↑</a>
+    </div>
+  </footer>
+</body>
+</html>
